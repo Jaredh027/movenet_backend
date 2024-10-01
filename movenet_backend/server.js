@@ -32,7 +32,6 @@ db.connect((err) => {
   console.log("Connected to MySQL");
 });
 
-// Define your routes here
 app.post("/api/swing-data", (req, res) => {
   const { swing_name, frames } = req.body;
 
@@ -70,6 +69,76 @@ app.post("/api/swing-data", (req, res) => {
 
       res.status(200).json({ message: "Swing data inserted successfully" });
     });
+  });
+});
+
+app.get("/api/swing-data", (req, res) => {
+  const swingName = req.query.swing_name;
+
+  if (!swingName) {
+    return res.status(400).json({ message: "Swing name is required" });
+  }
+
+  const swingQuery = "SELECT * FROM swings WHERE swing_name = ?";
+  const frameQuery = "SELECT * FROM frames WHERE swing_id = ?";
+
+  db.query(swingQuery, [swingName], (err, swingResults) => {
+    if (err) {
+      console.error("Error fetching swing data:", err);
+      return res.status(500).json({ message: "Error fetching swing data" });
+    }
+
+    if (swingResults.length === 0) {
+      return res.status(404).json({ message: "Swing not found" });
+    }
+
+    const swingId = swingResults[0].id;
+
+    db.query(frameQuery, [swingId], (err, frameResults) => {
+      if (err) {
+        console.error("Error fetching frames:", err);
+        return res.status(500).json({ message: "Error fetching frames" });
+      }
+
+      const groupedFrames = [];
+
+      frameResults.forEach((frame) => {
+        const frameNumber = frame.frame_number;
+
+        if (!groupedFrames[frameNumber]) {
+          groupedFrames[frameNumber] = [[]];
+        }
+
+        groupedFrames[frameNumber][0].push({
+          joint_index: frame.joint_index,
+          x: frame.x,
+          y: frame.y,
+          score: frame.score,
+        });
+      });
+
+      const filteredFrames = groupedFrames.filter(
+        (frame) => frame !== undefined
+      );
+
+      res.status(200).json({
+        swing: swingResults[0],
+        frames: filteredFrames,
+      });
+    });
+  });
+});
+
+app.get("/api/swings", (req, res) => {
+  const query = "SELECT * FROM swings";
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching swings:", err);
+      return res.status(500).json({ message: "Error fetching swings" });
+    }
+
+    res.status(200).json(results);
   });
 });
 
