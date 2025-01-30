@@ -49,18 +49,27 @@ router.get("/callback", async (req, res) => {
     console.log("User Info:", userInfo);
 
     const userQuery =
-      "INSERT INTO users (user_id, email, name) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE name = ?";
+      "INSERT INTO users (user_id, email, name, picture) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE name = ?, picture = ?";
 
     db.query(
       userQuery,
-      [userInfo.sub, userInfo.email, userInfo.name, userInfo.name],
+      [
+        userInfo.sub,
+        userInfo.email,
+        userInfo.name,
+        userInfo.picture,
+        userInfo.name,
+        userInfo.picture,
+      ],
       (err, result) => {
         if (err) {
           console.error("Error saving user:", err);
           return res.status(500).json({ message: "Error saving user" });
         }
         // res.status(200).json({ message: "Authentication successful", userInfo });
-        res.redirect(`http://localhost:3000/?userId=${userInfo.sub}`);
+        res.redirect(
+          `http://localhost:3000/oauthcallback?userId=${userInfo.sub}`
+        );
       }
     );
   } catch (error) {

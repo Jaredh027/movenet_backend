@@ -2,12 +2,12 @@ const express = require("express");
 const db = require("./connection"); // Import your database connection
 const router = express.Router();
 
-router.post("/api/swing-data", (req, res) => {
-  const { swing_name, frames, user_id } = req.body;
+router.post("/swing-data", (req, res) => {
+  const { swing_name, frames, userId } = req.body;
 
   const swingQuery = "INSERT INTO swings (swing_name, user_id) VALUES (?,?)";
 
-  db.query(swingQuery, [swing_name, user_id], (err, swingResult) => {
+  db.query(swingQuery, [swing_name, userId], (err, swingResult) => {
     if (err) {
       console.error("Error inserting swing:", err);
       return res.status(500).json({ message: "Error inserting swing" });
@@ -99,19 +99,6 @@ router.get("/swing-data", (req, res) => {
   });
 });
 
-router.get("/swings", (req, res) => {
-  const query = "SELECT * FROM swings";
-
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching swings:", err);
-      return res.status(500).json({ message: "Error fetching swings" });
-    }
-
-    res.status(200).json(results);
-  });
-});
-
 router.post("/delete-swing", (req, res) => {
   // Need id of swing from swings table
   const { id } = req.body;
@@ -151,6 +138,20 @@ router.get("/user/:userId", (req, res) => {
     }
 
     res.status(200).json(results[0]);
+  });
+});
+
+router.get("/swings/:userId", (req, res) => {
+  const { userId } = req.params;
+  const query = "SELECT * FROM swings WHERE user_id = ?";
+
+  db.query(query, [userId], (err, results) => {
+    if (err) {
+      console.error("Error fetching swings:", err);
+      return res.status(500).json({ message: "Error fetching swings" });
+    }
+
+    res.status(200).json(results);
   });
 });
 
