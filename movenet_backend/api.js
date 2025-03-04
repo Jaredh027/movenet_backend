@@ -19,7 +19,7 @@ router.post("/swing-data", (req, res) => {
       "INSERT INTO frames (swing_id, frame_number, joint_index, x, y, score) VALUES ?";
     let values = [];
     frames.forEach((frame, frameIndex) => {
-      frame[0].forEach((joint, jointIndex) => {
+      frame.forEach((joint, jointIndex) => {
         values.push([
           swingId,
           frameIndex,
